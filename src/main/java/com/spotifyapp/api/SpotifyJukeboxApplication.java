@@ -14,7 +14,12 @@ public class SpotifyJukeboxApplication {
 	}
 
 	@GetMapping("/")
-	public String hell() {
+	public String hello() {
 		return "Hello World!";
+	}
+
+	@GetMapping("/seiko")
+	public String seiko() {
+		return "Seiko Hiromi Hosoki (in a miami accent) IS THE BEST";
 	}
 }
