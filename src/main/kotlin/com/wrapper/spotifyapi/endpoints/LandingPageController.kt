@@ -1,4 +1,4 @@
-package com.wrapper.spotifyapi
+package com.wrapper.spotifyapi.endpoints
 
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
