@@ -1,12 +1,29 @@
-package com.wrapper.spotifyapi.endpoints
+package com.wrapper.spotifyapi.configurations
 
 import com.wrapper.spotify.SpotifyApi
+import com.wrapper.spotify.SpotifyHttpManager
 import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials
+import org.springframework.stereotype.Service
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
-class AuthorizationController(private val spotifyApi: SpotifyApi) {
+private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
+private const val clientSecret = "af87e6b4f2b142a9bee7f2c6761dbca0"
+//private val localRedirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
+private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
+
+@Service
+class SpotifyRepository {
+
+  private val spotifyApi =
+    SpotifyApi.Builder()
+      .setClientId(clientId)
+      .setClientSecret(clientSecret)
+      .setRedirectUri(redirectUri)
+      .build()
+
+  fun spotifyApi(): SpotifyApi = spotifyApi
 
   private val authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
     .scope("user-read-private user-read-email playlist-modify-public playlist-modify-private playlist-read-private user-read-currently-playing")
@@ -29,6 +46,7 @@ class AuthorizationController(private val spotifyApi: SpotifyApi) {
   }
 
   fun authorizationCodeAsync(code: String) {
+    println("code: $code")
     val authorizationCodeRequest = spotifyApi.authorizationCode(code).build()
 
     try {
@@ -36,6 +54,8 @@ class AuthorizationController(private val spotifyApi: SpotifyApi) {
 
       // Example Only. Never block in production code.
       val authorizationCodeCredentials = authorizationCodeCredentialsFuture.join()
+
+      println("token: " + authorizationCodeCredentials.accessToken)
 
       // Set access and refresh token for further "spotifyApi" object usage
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
