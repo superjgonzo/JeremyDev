@@ -27,9 +27,6 @@ class SpotifyRepository {
     .scope("user-read-private user-read-email playlist-modify-public playlist-modify-private playlist-read-private user-read-currently-playing")
     .build()
 
-  private val authorizationCodeRefreshRequest = spotifyApi.authorizationCodeRefresh()
-    .build()
-
   fun authorizationCodeURI(): String {
     return try {
       val uriFuture = authorizationCodeUriRequest.executeAsync()
@@ -66,6 +63,9 @@ class SpotifyRepository {
   }
 
   fun authorizationCodeRefresh() {
+    val authorizationCodeRefreshRequest = spotifyApi.authorizationCodeRefresh()
+      .build()
+
     try {
       val authorizationCodeCredentialsFuture = authorizationCodeRefreshRequest.executeAsync()
 
