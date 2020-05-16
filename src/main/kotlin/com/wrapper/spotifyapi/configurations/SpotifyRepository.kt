@@ -2,11 +2,8 @@ package com.wrapper.spotifyapi.configurations
 
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
-import com.wrapper.spotify.model_objects.credentials.AuthorizationCodeCredentials
-import org.apache.hc.core5.concurrent.CompletedFuture
 import org.springframework.stereotype.Service
 import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
 private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
@@ -52,7 +49,7 @@ class SpotifyRepository {
     val authorizationCodeRequest = spotifyApi.authorizationCode(code).build()
 
     try {
-      val authorizationCodeCredentialsFuture: CompletableFuture<AuthorizationCodeCredentials> = authorizationCodeRequest.executeAsync()
+      val authorizationCodeCredentialsFuture = authorizationCodeRequest.executeAsync()
 
       // Example Only. Never block in production code.
       val authorizationCodeCredentials = authorizationCodeCredentialsFuture.join()
@@ -70,15 +67,19 @@ class SpotifyRepository {
 
   fun authorizationCodeRefresh() {
     try {
-      val authorizationCodeCredentialsFuture: CompletableFuture<AuthorizationCodeCredentials> = authorizationCodeRefreshRequest.executeAsync()
+      val authorizationCodeCredentialsFuture = authorizationCodeRefreshRequest.executeAsync()
 
+      // Thread free to do other tasks...
+
+      // Example Only. Never block in production code.
       val authorizationCodeCredentials = authorizationCodeCredentialsFuture.join()
 
+      // Set access token for further "spotifyApi" object usage
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
     } catch (e: CompletionException) {
-      println("Error: " + e.message)
+      println("Error: " + e.cause!!.message)
     } catch (e: CancellationException) {
-      println("Error " + e.message)
+      println("Async operation cancelled.")
     }
   }
 
