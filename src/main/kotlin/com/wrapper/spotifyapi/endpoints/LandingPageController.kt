@@ -1,6 +1,6 @@
 package com.wrapper.spotifyapi.endpoints
 
-import com.wrapper.spotifyapi.configurations.SpotifyRepository
+import com.wrapper.spotifyapi.database.repository.SpotifyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -30,5 +30,4 @@ class LandingPageController @Autowired constructor(
     spotifyRepository.authorizationCode(code)
     return ModelAndView("redirect:$homePage")
   }
-
 }

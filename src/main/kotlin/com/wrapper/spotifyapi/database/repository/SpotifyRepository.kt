@@ -1,7 +1,8 @@
-package com.wrapper.spotifyapi.configurations
+package com.wrapper.spotifyapi.database.repository
 
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
+import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest
 import com.wrapper.spotifyapi.database.models.PartyRoom
 import com.wrapper.spotifyapi.endpoints.DatabaseController
 import org.springframework.stereotype.Service
@@ -12,6 +13,7 @@ private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
 private const val clientSecret = "af87e6b4f2b142a9bee7f2c6761dbca0"
 //private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
 private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
+private const val PLAYLIST_NAME = "PartyQueue"
 
 @Service
 class SpotifyRepository(private val databaseController: DatabaseController) {
@@ -61,7 +63,7 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
         PartyRoom(
           roomNumber = databaseController.createRoomNumber(),
           clientId = clientId,
-          playlistId = "TEMP",
+          playlistId = getPartyQueuePlaylist(),
           accessToken = authorizationCodeCredentials.accessToken
         )
       )
@@ -94,4 +96,71 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
     }
   }
 
+  private fun getPartyQueuePlaylist(): String {
+    val getListOfCurrentUsersPlaylistsRequest = spotifyApi.getListOfCurrentUsersPlaylists()
+      .build()
+
+    return try {
+      val pagingFuture = getListOfCurrentUsersPlaylistsRequest.executeAsync()
+
+      // Thread free to do other tasks...
+
+      // Example Only. Never block in production code.
+      val playlistSimplifiedPaging = pagingFuture.join()
+
+      return if (playlistSimplifiedPaging.items.any { it.name == PLAYLIST_NAME }) {
+        playlistSimplifiedPaging.items.find{ it.name == PLAYLIST_NAME }?.id!!
+      } else {
+        createplaylist()
+      }
+
+    } catch (e: CompletionException) {
+      "Error: " + e.cause?.message
+    } catch (e: CancellationException) {
+      "Async operation cancelled."
+    }
+  }
+
+  private fun createplaylist(): String {
+    val createPlaylistRequest = spotifyApi.createPlaylist(getUserId(), PLAYLIST_NAME)
+      .build()
+
+    return try {
+      val playlistFuture = createPlaylistRequest.executeAsync()
+
+      // Thread free to do other tasks...
+
+      // Example Only. Never block in production code.
+      val playlist = playlistFuture.join()
+      playlist.id
+    } catch (e: CompletionException) {
+      println("Error: " + e.cause!!.message)
+      ""
+    } catch (e: CancellationException) {
+      println("Async operation cancelled.")
+      ""
+    }
+
+  }
+
+  private fun getUserId(): String {
+    val getCurrentUsersProfileRequest: GetCurrentUsersProfileRequest = spotifyApi.currentUsersProfile
+      .build()
+
+    return try {
+      val userFuture = getCurrentUsersProfileRequest.executeAsync()
+
+      // Thread free to do other tasks...
+
+      // Example Only. Never block in production code.
+      val user = userFuture.join()
+      user.id
+    } catch (e: CompletionException) {
+      println("Error: " + e.cause?.message)
+      "ERROR: " + e.cause?.message
+    } catch (e: CancellationException) {
+      println("Async operation cancelled.")
+      "ERROR: " + e.cause?.message
+    }
+  }
 }

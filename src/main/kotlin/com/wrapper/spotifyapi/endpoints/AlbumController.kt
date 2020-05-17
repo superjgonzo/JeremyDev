@@ -2,7 +2,7 @@ package com.wrapper.spotifyapi.endpoints
 
 import com.wrapper.spotify.model_objects.specification.AlbumSimplified
 import com.wrapper.spotify.model_objects.specification.Paging
-import com.wrapper.spotifyapi.configurations.SpotifyRepository
+import com.wrapper.spotifyapi.database.repository.SpotifyRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -23,8 +23,6 @@ class AlbumController @Autowired constructor(
     val searchAlbumsRequest = spotifyRepository.spotifyApi().searchAlbums(searchQuery)
       .build()
 
-    println("refresh token: " + spotifyRepository.spotifyApi().refreshToken)
-
     return try {
       val pagingFuture: CompletableFuture<Paging<AlbumSimplified>> = searchAlbumsRequest.executeAsync()
 
@@ -42,9 +40,8 @@ class AlbumController @Autowired constructor(
 
       listOfAlbums
     } catch (e: CompletionException) {
-      println("Error Type: " + e.cause!!.toString())
-      println("Error: " + e.cause!!.message)
-      listOf(Album(albumTitle = "Error: " + e.cause!!.message))
+      println("Error: " + e.cause?.message)
+      listOf(Album(albumTitle = "Error: " + e.cause?.message))
     } catch (e: CancellationException) {
       listOf(Album(albumTitle = "Async operation cancelled."))
     }
