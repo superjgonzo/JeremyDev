@@ -2,17 +2,20 @@ package com.wrapper.spotifyapi.configurations
 
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
+import com.wrapper.spotifyapi.database.models.PartyRoom
+import com.wrapper.spotifyapi.database.repository.PartyRoomRepository
+import com.wrapper.spotifyapi.endpoints.DatabaseController
 import org.springframework.stereotype.Service
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletionException
 
 private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
 private const val clientSecret = "af87e6b4f2b142a9bee7f2c6761dbca0"
-private val localRedirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
-private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
+private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
+//private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
 
 @Service
-class SpotifyRepository {
+class SpotifyRepository(private val databaseController: DatabaseController) {
 
   private val spotifyApi =
     SpotifyApi.Builder()
@@ -54,6 +57,15 @@ class SpotifyRepository {
       // Set access and refresh token for further "spotifyApi" object usage
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
       spotifyApi.refreshToken = authorizationCodeCredentials.refreshToken
+
+      databaseController.createNewRoom(
+        PartyRoom(
+          roomNumber = databaseController.createRoomNumber(),
+          clientId = clientId,
+          playlistId = "TEMP",
+          accessToken = authorizationCodeCredentials.accessToken
+        )
+      )
 
     } catch (e: CompletionException) {
       println("Error: " + e.message)

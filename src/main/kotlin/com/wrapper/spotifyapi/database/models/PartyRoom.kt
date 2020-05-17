@@ -1,15 +1,13 @@
 package com.wrapper.spotifyapi.database.models
 
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
+import javax.persistence.*
 import javax.validation.constraints.NotBlank
 
 @Entity
 data class PartyRoom(
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val roomNumber: Int = 0,
+  @Id
+  @Column(name = "room_number", nullable = false)
+  val roomNumber: String = " ",
 
   @get: NotBlank
   val clientId: String = " ",

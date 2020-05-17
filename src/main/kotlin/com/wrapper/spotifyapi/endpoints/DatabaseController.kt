@@ -4,30 +4,33 @@ import com.wrapper.spotifyapi.database.models.PartyRoom
 import com.wrapper.spotifyapi.database.repository.PartyRoomRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
+import kotlin.streams.asSequence
 
+private const val SOURCE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+private const val LOBBY_ROOM_CODE_LENGTH = 5L
+
+@Service
 @RestController
 @RequestMapping("/db")
-class TempDatabaseController(private val partyRoomRepository: PartyRoomRepository) {
+class DatabaseController(private val partyRoomRepository: PartyRoomRepository) {
 
-  @GetMapping("/test")
-  fun test(): String = "Testing this endpoint"
+  fun createRoomNumber(): String = generateRoomCode()
 
   @GetMapping("/partyRooms")
   fun getAllRooms(): List<PartyRoom> {
-    println("get called")
     return partyRoomRepository.findAll()
   }
 
   @PostMapping("/partyRooms")
   fun createNewRoom(@Valid @RequestBody partyRoom: PartyRoom): PartyRoom {
-    println("post called")
     return partyRoomRepository.save(partyRoom)
   }
 
   @GetMapping("/partyRooms/{roomNumber}")
-  fun getRoomsByRoomNumber(@PathVariable(value = "roomNumber") roomNumber: Int): ResponseEntity<PartyRoom> {
+  fun getRoomsByRoomNumber(@PathVariable(value = "roomNumber") roomNumber: String): ResponseEntity<PartyRoom> {
     return partyRoomRepository.findById(roomNumber).map { room ->
       ResponseEntity.ok(room)
     }.orElse(ResponseEntity.notFound().build())
@@ -35,7 +38,7 @@ class TempDatabaseController(private val partyRoomRepository: PartyRoomRepositor
 
   @PutMapping("/partyRooms/{roomNumber}")
   fun updateRoomByRoomNumber(
-    @PathVariable(value = "roomNumber") roomNumber: Int,
+    @PathVariable(value = "roomNumber") roomNumber: String,
     @Valid @RequestBody newRoom: PartyRoom
   ) : ResponseEntity<PartyRoom> {
     return partyRoomRepository.findById(roomNumber).map { existingRoom ->
@@ -51,11 +54,17 @@ class TempDatabaseController(private val partyRoomRepository: PartyRoomRepositor
   }
 
   @DeleteMapping("/partyRooms/{roomNumber}")
-  fun deleteRoombyRoomNumber(@PathVariable(value = "roomNumber") roomNumber: Int) : ResponseEntity<Void> {
+  fun deleteRoombyRoomNumber(@PathVariable(value = "roomNumber") roomNumber: String) : ResponseEntity<Void> {
     return partyRoomRepository.findById(roomNumber).map { room ->
       partyRoomRepository.delete(room)
       ResponseEntity<Void>(HttpStatus.OK)
     }.orElse(ResponseEntity.notFound().build())
   }
 
+  private fun generateRoomCode(): String {
+    return java.util.Random().ints(LOBBY_ROOM_CODE_LENGTH, 0, SOURCE.length)
+      .asSequence()
+      .map(SOURCE::get)
+      .joinToString("")
+  }
 }
