@@ -20,4 +20,5 @@ data class PartyRoom(
 
   @get: NotBlank
   val refreshToken: String = " "
+
 )
