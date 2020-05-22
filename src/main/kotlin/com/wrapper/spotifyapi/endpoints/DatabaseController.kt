@@ -24,19 +24,19 @@ class DatabaseController(private val partyRoomRepository: PartyRoomRepository) {
     return partyRoomRepository.findAll()
   }
 
-  @PostMapping("/partyRooms")
+//  @PostMapping("/createRooms")
   fun createNewRoom(@Valid @RequestBody partyRoom: PartyRoom): PartyRoom {
     return partyRoomRepository.save(partyRoom)
   }
 
-  @GetMapping("/partyRooms/{roomNumber}")
+//  @GetMapping("/getRoom/{roomNumber}")
   fun getRoomsByRoomNumber(@PathVariable(value = "roomNumber") roomNumber: String): ResponseEntity<PartyRoom> {
     return partyRoomRepository.findById(roomNumber).map { room ->
       ResponseEntity.ok(room)
     }.orElse(ResponseEntity.notFound().build())
   }
 
-  @PutMapping("/partyRooms/{roomNumber}")
+//  @PutMapping("/putRoom/{roomNumber}")
   fun updateRoomByRoomNumber(
     @PathVariable(value = "roomNumber") roomNumber: String,
     @Valid @RequestBody newRoom: PartyRoom
@@ -53,8 +53,8 @@ class DatabaseController(private val partyRoomRepository: PartyRoomRepository) {
     }.orElse(ResponseEntity.notFound().build())
   }
 
-  @DeleteMapping("/partyRooms/{roomNumber}")
-  fun deleteRoombyRoomNumber(@PathVariable(value = "roomNumber") roomNumber: String) : ResponseEntity<Void> {
+//  @DeleteMapping("/deleteRoom/{roomNumber}")
+  fun deleteRoomByRoomNumber(@PathVariable(value = "roomNumber") roomNumber: String) : ResponseEntity<Void> {
     return partyRoomRepository.findById(roomNumber).map { room ->
       partyRoomRepository.delete(room)
       ResponseEntity<Void>(HttpStatus.OK)

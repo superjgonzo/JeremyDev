@@ -1,5 +1,6 @@
 package com.wrapper.spotifyapi.endpoints
 
+import com.wrapper.spotify.enums.ModelObjectType
 import com.wrapper.spotify.model_objects.specification.Image
 import com.wrapper.spotify.model_objects.specification.Paging
 import com.wrapper.spotify.model_objects.specification.Track
@@ -12,7 +13,11 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
+private const val spotifyTrackPrefix = "spotify:track:"
+private const val spotifyEpisodePrefix = "spotify:episode:"
+
 @RestController
+@RequestMapping("/api")
 class SongController @Autowired constructor(
   private val spotifyRepository: SpotifyRepository
 ) {
@@ -21,7 +26,7 @@ class SongController @Autowired constructor(
   fun searchForSong(@RequestParam song: String): List<Song> = searchSongAsync(song)
 
   private fun searchSongAsync(searchQuery: String): List<Song> {
-    val searchSongRequest = spotifyRepository.spotifyApi().searchTracks(searchQuery)
+    val searchSongRequest = spotifyRepository.spotifyRepository().spotifyApi.searchTracks(searchQuery)
       .build()
 
     return try {
@@ -35,17 +40,30 @@ class SongController @Autowired constructor(
           Song(
             it.name,
             it.artists[0].name,
-            it.album.images[0]
+            it.album.images[0],
+            getTrackTypePrefix(it.type) + it.id
           )
         )
       }
       listOfSongs
     } catch (e: CompletionException) {
       println("Error Type: " + e.cause?.message)
-      listOf(Song("Error: " + e.cause?.message, "", null))
+      listOf(Song("Error: " + e.cause?.message, "", null, ""))
     } catch (e: CancellationException) {
       println("Error Type: " + e.cause?.message)
-      listOf(Song("Error: " + e.cause?.message, "", null))
+      listOf(Song("Error: " + e.cause?.message, "", null, ""))
+    }
+  }
+
+  private fun getTrackTypePrefix(trackType: ModelObjectType): String {
+    return when(trackType) {
+      ModelObjectType.TRACK -> {
+        spotifyTrackPrefix
+      }
+      ModelObjectType.EPISODE -> {
+        spotifyEpisodePrefix
+      }
+      else -> ""
     }
   }
 }
@@ -53,5 +71,6 @@ class SongController @Autowired constructor(
 data class Song(
   val songTitle: String,
   val artist: String,
-  val albumArt: Image?
+  val albumArt: Image?,
+  val songId: String
 )

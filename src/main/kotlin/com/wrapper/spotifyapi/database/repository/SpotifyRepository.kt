@@ -25,7 +25,9 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
       .setRedirectUri(redirectUri)
       .build()
 
-  fun spotifyApi(): SpotifyApi = spotifyApi
+  private var playlistId = ""
+
+  fun spotifyRepository() = SpotifyRepositoryData(spotifyApi, playlistId)
 
   private val authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
     .scope("user-read-private user-read-email playlist-modify-public playlist-modify-private playlist-read-private user-read-currently-playing")
@@ -96,8 +98,15 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
     }
   }
 
+  fun guestAccessCode(roomNumber: String) {
+    val partyRoom = databaseController.getRoomsByRoomNumber(roomNumber)
+
+    spotifyApi.accessToken = partyRoom.body?.accessToken
+    playlistId = partyRoom.body?.playlistId ?: ""
+  }
+
   private fun getPartyQueuePlaylist(): String {
-    val getListOfCurrentUsersPlaylistsRequest = spotifyApi.getListOfCurrentUsersPlaylists()
+    val getListOfCurrentUsersPlaylistsRequest = spotifyApi.listOfCurrentUsersPlaylists
       .build()
 
     return try {
@@ -109,7 +118,9 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
       val playlistSimplifiedPaging = pagingFuture.join()
 
       return if (playlistSimplifiedPaging.items.any { it.name == PLAYLIST_NAME }) {
-        playlistSimplifiedPaging.items.find{ it.name == PLAYLIST_NAME }?.id!!
+        playlistSimplifiedPaging.items.find{ it.name == PLAYLIST_NAME }?.id!!.also {
+          playlistId = it
+        }
       } else {
         createplaylist()
       }
@@ -132,7 +143,9 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
 
       // Example Only. Never block in production code.
       val playlist = playlistFuture.join()
-      playlist.id
+      playlist.id.also {
+        playlistId = it
+      }
     } catch (e: CompletionException) {
       println("Error: " + e.cause!!.message)
       ""
@@ -164,3 +177,8 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
     }
   }
 }
+
+data class SpotifyRepositoryData(
+  val spotifyApi: SpotifyApi,
+  val playlistId: String
+)

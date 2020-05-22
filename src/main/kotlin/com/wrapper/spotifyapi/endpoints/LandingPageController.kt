@@ -13,14 +13,21 @@ private const val homePage = "http://superjgonzo.net"
 
 @RestController
 class LandingPageController @Autowired constructor(
-  private val spotifyRepository: SpotifyRepository
+  private val spotifyRepository: SpotifyRepository,
+  private val databaseController: DatabaseController
 ) {
 
   @RequestMapping("/")
   fun home(): String = "Hello World"
 
+  @RequestMapping("/welcome")
+  fun loggedIn(): String = "WELCOME!"
+
+  @RequestMapping("/roomClosed")
+  fun roomClosed(): String = "Room Closed!"
+
   @RequestMapping(value = ["/login"], method = [RequestMethod.GET])
-  fun login(): ModelAndView?{
+  fun login(): ModelAndView? {
     val authorizationResult = spotifyRepository.authorizationCodeURI()
     return ModelAndView("redirect:$authorizationResult")
   }
@@ -29,5 +36,17 @@ class LandingPageController @Autowired constructor(
   fun callback(@RequestParam code: String): ModelAndView? {
     spotifyRepository.authorizationCode(code)
     return ModelAndView("redirect:$homePage")
+  }
+
+  @RequestMapping("/joinRoom")
+  fun joinRoom(@RequestParam roomNumber: String) : ModelAndView? {
+    spotifyRepository.guestAccessCode(roomNumber)
+    return ModelAndView("redirect:$homePage/welcome")
+  }
+
+  @RequestMapping("/closeRoom")
+  fun closeRoom(@RequestParam roomNumber: String) : ModelAndView? {
+    databaseController.deleteRoomByRoomNumber(roomNumber)
+    return ModelAndView("redirect:$homePage/roomClosed")
   }
 }

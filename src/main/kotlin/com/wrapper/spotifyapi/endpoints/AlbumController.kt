@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
 @RestController
+@RequestMapping("/api")
 class AlbumController @Autowired constructor(
   private val spotifyRepository: SpotifyRepository
 ) {
@@ -20,7 +21,7 @@ class AlbumController @Autowired constructor(
   fun searchForAlbums(@RequestParam artist: String): List<Album> = searchAlbumsAsync(artist)
 
   private fun searchAlbumsAsync(searchQuery: String): List<Album> {
-    val searchAlbumsRequest = spotifyRepository.spotifyApi().searchAlbums(searchQuery)
+    val searchAlbumsRequest = spotifyRepository.spotifyRepository().spotifyApi.searchAlbums(searchQuery)
       .build()
 
     return try {
