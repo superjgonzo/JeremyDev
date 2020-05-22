@@ -47,10 +47,18 @@ class SongController @Autowired constructor(
       }
       listOfSongs
     } catch (e: CompletionException) {
-      println("Error Type: " + e.cause?.message)
-      listOf(Song("Error: " + e.cause?.message, "", null, ""))
+      // assuming that this is where access token error always occurs?
+      println("Error Type completionException: " + e.cause?.message)
+
+      // TODO(Create a better way to refresh the access token)
+      if (spotifyRepository.authorizationCodeRefresh()) {
+        // retry call to search songs
+        searchSongAsync(searchQuery)
+      } else {
+        listOf(Song("Error: " + e.cause?.message, "", null, ""))
+      }
     } catch (e: CancellationException) {
-      println("Error Type: " + e.cause?.message)
+      println("Error Type cancellationException: " + e.cause?.message)
       listOf(Song("Error: " + e.cause?.message, "", null, ""))
     }
   }

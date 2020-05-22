@@ -2,12 +2,16 @@ package com.wrapper.spotifyapi.database.repository
 
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
+import com.wrapper.spotify.exceptions.SpotifyWebApiException
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest
 import com.wrapper.spotifyapi.database.models.PartyRoom
 import com.wrapper.spotifyapi.endpoints.DatabaseController
 import org.springframework.stereotype.Service
+import java.io.IOException
+import java.lang.Exception
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletionException
+
 
 private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
 private const val clientSecret = "af87e6b4f2b142a9bee7f2c6761dbca0"
@@ -26,6 +30,7 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
       .build()
 
   private var playlistId = ""
+  private var roomNumber = ""
 
   fun spotifyRepository() = SpotifyRepositoryData(spotifyApi, playlistId)
 
@@ -61,12 +66,15 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
       spotifyApi.refreshToken = authorizationCodeCredentials.refreshToken
 
+      roomNumber = databaseController.createRoomNumber()
+
       databaseController.createNewRoom(
         PartyRoom(
-          roomNumber = databaseController.createRoomNumber(),
+          roomNumber = roomNumber,
           clientId = clientId,
           playlistId = getPartyQueuePlaylist(),
-          accessToken = authorizationCodeCredentials.accessToken
+          accessToken = authorizationCodeCredentials.accessToken,
+          refreshToken = authorizationCodeCredentials.refreshToken
         )
       )
 
@@ -77,24 +85,49 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
     }
   }
 
-  fun authorizationCodeRefresh() {
+  fun authorizationCodeRefresh(): Boolean {
     val authorizationCodeRefreshRequest = spotifyApi.authorizationCodeRefresh()
       .build()
 
-    try {
-      val authorizationCodeCredentialsFuture = authorizationCodeRefreshRequest.executeAsync()
+    println("Before Refresh Token: ${spotifyApi.refreshToken}")
 
-      // Thread free to do other tasks...
+    /**
+     * blocking call to reset access token as we cannot do anything until access token is refreshed
+     */
+    return try {
+      val authorizationCodeCredentials = authorizationCodeRefreshRequest.execute()
 
-      // Example Only. Never block in production code.
-      val authorizationCodeCredentials = authorizationCodeCredentialsFuture.join()
+      println("Before Access Token: ${spotifyApi.accessToken}")
+      println("Before Refresh Token: ${spotifyApi.refreshToken}")
 
-      // Set access token for further "spotifyApi" object usage
+      // Set access and refresh token for further "spotifyApi" object usage
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
-    } catch (e: CompletionException) {
-      println("Error: " + e.cause!!.message)
-    } catch (e: CancellationException) {
-      println("Async operation cancelled.")
+      spotifyApi.refreshToken = authorizationCodeCredentials.refreshToken
+
+      println("\nAfter Access Token: ${spotifyApi.accessToken}")
+      println("After Refresh Token: ${spotifyApi.refreshToken}")
+
+      databaseController.updateRoomByRoomNumber(
+        roomNumber = roomNumber,
+        newRoom = PartyRoom(
+          roomNumber = roomNumber,
+          clientId = clientId,
+          playlistId = playlistId,
+          accessToken = authorizationCodeCredentials.accessToken,
+          refreshToken = authorizationCodeCredentials.refreshToken
+        )
+      )
+
+      true
+    } catch (e: IOException) {
+      println("Error 1: " + e.message)
+      false
+    } catch (e: SpotifyWebApiException) {
+      println("Error BOI: " + e.message)
+      false
+    } catch (e: Exception) {
+      println("Error UH OH: " + e.message)
+      false
     }
   }
 
@@ -122,7 +155,7 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
           playlistId = it
         }
       } else {
-        createplaylist()
+        createPlaylist()
       }
 
     } catch (e: CompletionException) {
@@ -132,7 +165,7 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
     }
   }
 
-  private fun createplaylist(): String {
+  private fun createPlaylist(): String {
     val createPlaylistRequest = spotifyApi.createPlaylist(getUserId(), PLAYLIST_NAME)
       .build()
 

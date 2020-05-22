@@ -16,6 +16,9 @@ data class PartyRoom(
   val playlistId: String = " ",
 
   @get: NotBlank
-  val accessToken: String = " "
+  val accessToken: String = " ",
+
+  @get: NotBlank
+  val refreshToken: String = " "
 
 )
