@@ -1,4 +1,4 @@
-package com.wrapper.spotifyapi.database.models
+package com.wrapper.jeremywebsite.spotifyapp.database.models
 
 import javax.persistence.*
 import javax.validation.constraints.NotBlank

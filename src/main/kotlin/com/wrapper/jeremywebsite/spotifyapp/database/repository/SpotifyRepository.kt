@@ -1,11 +1,11 @@
-package com.wrapper.spotifyapi.database.repository
+package com.wrapper.jeremywebsite.spotifyapp.database.repository
 
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
 import com.wrapper.spotify.exceptions.SpotifyWebApiException
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest
-import com.wrapper.spotifyapi.database.models.PartyRoom
-import com.wrapper.spotifyapi.endpoints.DatabaseController
+import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
+import com.wrapper.jeremywebsite.spotifyapp.endpoints.DatabaseController
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.lang.Exception
@@ -66,17 +66,18 @@ class SpotifyRepository(private val databaseController: DatabaseController) {
       spotifyApi.accessToken = authorizationCodeCredentials.accessToken
       spotifyApi.refreshToken = authorizationCodeCredentials.refreshToken
 
-      roomNumber = databaseController.createRoomNumber()
-
-      databaseController.createNewRoom(
-        PartyRoom(
-          roomNumber = roomNumber,
-          clientId = clientId,
-          playlistId = getPartyQueuePlaylist(),
-          accessToken = authorizationCodeCredentials.accessToken,
-          refreshToken = authorizationCodeCredentials.refreshToken
-        )
-      )
+      // re-enable when you want to take on the costs of google database fees....
+//      roomNumber = databaseController.createRoomNumber()
+//
+//      databaseController.createNewRoom(
+//        PartyRoom(
+//          roomNumber = roomNumber,
+//          clientId = clientId,
+//          playlistId = getPartyQueuePlaylist(),
+//          accessToken = authorizationCodeCredentials.accessToken,
+//          refreshToken = authorizationCodeCredentials.refreshToken
+//        )
+//      )
 
     } catch (e: CompletionException) {
       println("Error: " + e.message)

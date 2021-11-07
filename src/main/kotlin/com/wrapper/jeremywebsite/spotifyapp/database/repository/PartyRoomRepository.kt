@@ -1,6 +1,6 @@
-package com.wrapper.spotifyapi.database.repository
+package com.wrapper.jeremywebsite.spotifyapp.database.repository
 
-import com.wrapper.spotifyapi.database.models.PartyRoom
+import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

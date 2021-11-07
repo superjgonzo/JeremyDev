@@ -1,7 +1,7 @@
-package com.wrapper.spotifyapi.endpoints
+package com.wrapper.jeremywebsite.spotifyapp.endpoints
 
-import com.wrapper.spotifyapi.database.models.PartyRoom
-import com.wrapper.spotifyapi.database.repository.PartyRoomRepository
+import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
+import com.wrapper.jeremywebsite.spotifyapp.database.repository.PartyRoomRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
