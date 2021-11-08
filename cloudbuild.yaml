@@ -6,5 +6,5 @@ steps:
     secretEnv: ['DISCORDTOKEN']
 availableSecrets:
   secretManager:
-  - versionName: projects/mystic-column-275402/secrets/discord-token/versions/latest
-    env: 'DISCORDTOKEN'
+    - versionName: projects/mystic-column-275402/secrets/discord-token/versions/latest
+        env: DISCORDTOKEN
