@@ -64,7 +64,11 @@ class MusicPlayer {
             }
           )
         }
-        messageContent == "!disconnect" -> currentAudioConnection?.close()
+        messageContent == "!disconnect" -> {
+          player.destroy()
+          trackScheduler.queue.clear()
+          currentAudioConnection?.close()
+        }
         else -> { /* do nothing */ }
       }
     }

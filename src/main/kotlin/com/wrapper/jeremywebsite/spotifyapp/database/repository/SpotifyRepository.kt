@@ -6,17 +6,15 @@ import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
 import com.wrapper.spotify.exceptions.SpotifyWebApiException
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest
-import javafx.util.Builder
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.io.IOException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletionException
 
-private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
-//private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
+//private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
+private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
 private const val PLAYLIST_NAME = "PartyQueue"
 
 @Service

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class DiscordRepository @Autowired constructor(val environment: Environment) {
 
+  private val musicPlayer = MusicPlayer()
+
   @Bean
   @ConfigurationProperties(value = "discord-api")
   fun discordApi(): DiscordApi {
@@ -20,7 +22,7 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
       .join()
 
     api.addMessageCreateListener {
-      MusicPlayer().handleMessage(it)
+      musicPlayer.handleMessage(it)
     }
 
     return api
