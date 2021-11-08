@@ -1,33 +1,37 @@
 package com.wrapper.jeremywebsite.spotifyapp.database.repository
 
+import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
+import com.wrapper.jeremywebsite.spotifyapp.endpoints.DatabaseController
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
 import com.wrapper.spotify.exceptions.SpotifyWebApiException
 import com.wrapper.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest
-import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
-import com.wrapper.jeremywebsite.spotifyapp.endpoints.DatabaseController
+import javafx.util.Builder
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import java.io.IOException
-import java.lang.Exception
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletionException
 
-
-private const val clientId = "00e493dfeeb14ff98a17caeacc82c244"
-private const val clientSecret = "af87e6b4f2b142a9bee7f2c6761dbca0"
-//private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
-private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
+private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
+//private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
 private const val PLAYLIST_NAME = "PartyQueue"
 
 @Service
-class SpotifyRepository(private val databaseController: DatabaseController) {
+class SpotifyRepository @Autowired constructor(
+  private val databaseController: DatabaseController,
+  environment: Environment
+) {
 
-  private val spotifyApi =
-    SpotifyApi.Builder()
-      .setClientId(clientId)
-      .setClientSecret(clientSecret)
-      .setRedirectUri(redirectUri)
-      .build()
+  private val clientId = environment.getProperty("spotify.clientId") ?: ""
+
+  private val spotifyApi = SpotifyApi.Builder()
+    .setClientId(clientId)
+    .setClientSecret(environment.getProperty("spotify.clientSecret"))
+    .setRedirectUri(redirectUri)
+    .build()
 
   private var playlistId = ""
   private var roomNumber = ""

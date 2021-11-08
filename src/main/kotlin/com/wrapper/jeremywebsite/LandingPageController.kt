@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.ModelAndView
 
-//private const val homePage = "http://localhost:8080"
-private const val homePage = "http://superjgonzo.net"
+private const val homePage = "http://localhost:8080"
+//private const val homePage = "http://superjgonzo.net"
 
 @RestController
 class LandingPageController @Autowired constructor(
