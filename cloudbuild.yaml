@@ -2,4 +2,8 @@ steps:
   - name: maven:3-jdk-8
     entrypoint: mvn
     args: ['-P jar-with-dependencies', 'package', 'appengine:deploy']
-    env: ['-Dspring-boot.run.arguments= --discord.token=OTA3MDI2NzUyNzE3NjE5MjMx.YYhMfQ.LZ7W8NhZl2znZp0ZxFN5P04ZyR8"']
+    env: ['-Dspring-boot.run.arguments= --discord.token=$$DISCORD_TOKEN"']
+    secretEnv: ['DISCORD_TOKEN']
+  availableSecrets:
+    - versionName: projects/mystic-column-275402/secrets/discord-token/versions/latest
+          env: 'DISCORD_TOKEN'
