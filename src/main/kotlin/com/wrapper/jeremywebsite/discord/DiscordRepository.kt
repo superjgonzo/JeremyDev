@@ -17,19 +17,15 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
   @ConfigurationProperties(value = "discord-api")
   fun discordApi() {
     val token = environment.getProperty("discord.token")
-    try {
-      val api = DiscordApiBuilder()
-        .setToken(token)
-        .setWaitForServersOnStartup(true)
-        .setAllNonPrivilegedIntents()
-        .login()
-        .join()
+    val api = DiscordApiBuilder()
+      .setToken(token)
+      .setWaitForServersOnStartup(false)
+      .setAllNonPrivilegedIntents()
+      .login()
+      .join()
 
-      api.addMessageCreateListener {
-        musicPlayer.handleMessage(it)
-      }
-    } catch (e: Exception) {
-      println(e)
+    api.addMessageCreateListener {
+      musicPlayer.handleMessage(it)
     }
   }
 }
