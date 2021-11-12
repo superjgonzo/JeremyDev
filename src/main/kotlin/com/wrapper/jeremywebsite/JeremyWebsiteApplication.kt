@@ -9,7 +9,7 @@ class JeremyWebsiteApplication : SpringBootServletInitializer()
 
 fun main(args: Array<String>) {
 	args.forEach {
-		println(it + "POOP")
+		println(it + "test")
 	}
 	runApplication<JeremyWebsiteApplication>(*args)
 }
