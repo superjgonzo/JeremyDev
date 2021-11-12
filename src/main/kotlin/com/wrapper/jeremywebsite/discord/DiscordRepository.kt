@@ -16,8 +16,8 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
   @Bean
   @ConfigurationProperties(value = "discord-api")
   fun discordApi(): DiscordApi {
-    val api = DiscordApiBuilder().setToken(environment.getProperty("discord.token"))
-      .setAllNonPrivilegedIntents()
+    val api = DiscordApiBuilder()
+      .setToken(environment.getProperty("discord.token"))
       .login()
       .join()
 
