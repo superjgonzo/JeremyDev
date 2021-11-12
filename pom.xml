@@ -159,6 +159,7 @@
 				<version>2.4.0</version>
 				<configuration>
 					<deploy.projectId>mystic-column-275402</deploy.projectId>
+					<deploy.version>GCLOUD_CONFIG</deploy.version>
 				</configuration>
 			</plugin>
 		</plugins>
