@@ -19,7 +19,7 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
     try {
       val api = DiscordApiBuilder()
         .setToken(environment.getProperty("discord.token"))
-        .setWaitForServersOnStartup(false)
+        .setWaitForServersOnStartup(true)
         .setAllNonPrivilegedIntents()
         .login()
         .join()
