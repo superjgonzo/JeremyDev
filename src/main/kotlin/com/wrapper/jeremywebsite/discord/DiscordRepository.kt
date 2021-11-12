@@ -15,7 +15,7 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
 
   @Bean
   @ConfigurationProperties(value = "discord-api")
-  fun discordApi() {
+  fun discordApi(): DiscordApi {
     val token = environment.getProperty("discord.token")
     val api = DiscordApiBuilder()
       .setToken(token)
@@ -27,5 +27,7 @@ class DiscordRepository @Autowired constructor(val environment: Environment) {
     api.addMessageCreateListener {
       musicPlayer.handleMessage(it)
     }
+
+    return api
   }
 }
