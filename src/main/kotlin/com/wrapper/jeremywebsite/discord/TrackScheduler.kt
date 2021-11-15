@@ -11,20 +11,31 @@ import java.util.concurrent.LinkedBlockingQueue
 class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter() {
 
   val queue: BlockingQueue<AudioTrack> = LinkedBlockingQueue()
+  private lateinit var currentChannel: TextChannel
 
   fun nextTrack() {
-    audioPlayer.startTrack(queue.poll(), false)
+    val nextTrack = queue.poll()
+    currentChannel.sendMessage("Now Playing: " + nextTrack.info.title)
+    audioPlayer.startTrack(nextTrack, false)
   }
 
   fun queue(track: AudioTrack, channel: TextChannel) {
+    currentChannel = channel
     // if a song is not already playing
     if (!audioPlayer.startTrack(track, true)) {
-      channel.sendMessage("Queueing up: " + track.info.title + "\nsongs in queue: " + (queue.size + 1))
-      queue.add(track)
+      if (queue.add(track)) {
+        channel.sendMessage("Queueing Up: " + track.info.title + "\nsongs in queue: " + queue.size)
+      }
+    } else {
+      channel.sendMessage("Starting Track: " + track.info.title)
     }
   }
 
   override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
+    if (endReason == AudioTrackEndReason.LOAD_FAILED) {
+     currentChannel.sendMessage("Error Loading song: " + track?.info?.title)
+    }
+
     if (endReason?.mayStartNext == true) {
       if (queue.isNotEmpty()) {
         nextTrack()

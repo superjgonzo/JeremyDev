@@ -20,10 +20,22 @@ class MusicPlayer {
     it.registerSourceManager(YoutubeAudioSourceManager())
   }
 
-  private val player: AudioPlayer = playerManager.createPlayer()
+  private val player: AudioPlayer = playerManager.createPlayer().also {
+    // listen for track events, if track ends then queue up next song
+    it.addListener { event ->
+      if (event is TrackEndEvent) {
+        trackScheduler.onTrackEnd(it, event.track, event.endReason)
+      }
+    }
+  }
   private val trackScheduler: TrackScheduler = TrackScheduler(player)
+  // Create an audio source and add it to the audio connection's queue
+  private var source: LavaPlayerAudioSource? = null
 
   fun handleMessage(event: MessageCreateEvent) {
+    if (source == null) {
+      source = LavaPlayerAudioSource(event.api, player)
+    }
     with(event) {
       when {
         // queue up a new song
@@ -36,24 +48,24 @@ class MusicPlayer {
             messageAuthor.connectedVoiceChannel.map {
               // if the bot is currently connected to the channel then play the song
               if (it.isConnected(api.yourself) && currentAudioConnection != null) {
-                playMusic(api, currentAudioConnection!!, messageContent.split(" ")[1], channel)
+                playMusic(messageContent.split(" ")[1], channel)
               } else {
                 // if the bot is not connected to the channel then connect and then play the song
                 it.connect().thenAccept { audioConnection ->
                   currentAudioConnection = audioConnection
-                  playMusic(api, audioConnection, messageContent.split(" ")[1], channel)
+                  currentAudioConnection!!.setAudioSource(source)
+                  playMusic(messageContent.split(" ")[1], channel)
                 }
               }
             }
           }
         }
         messageContent == "!skip" || messageContent == "!s" -> {
-          channel.sendMessage(if (trackScheduler.queue.isEmpty()) {
-            "Queue is empty"
+          if (trackScheduler.queue.isEmpty()) {
+            channel.sendMessage("Queue is empty")
           } else {
-            "Skipping to next song"
-          })
-          trackScheduler.nextTrack()
+            trackScheduler.nextTrack()
+          }
         }
         messageContent == "!currentSong" -> {
           channel.sendMessage(
@@ -74,47 +86,34 @@ class MusicPlayer {
     }
   }
 
-  private fun playMusic(
-    api: DiscordApi,
-    audioConnection: AudioConnection,
-    searchURL: String,
-    channel: TextChannel
-  ) {
-    // Create an audio source and add it to the audio connection's queue
-    val source = LavaPlayerAudioSource(api, player)
-    audioConnection.setAudioSource(source)
-
-    // listen for track events, if track ends then queue up next song
-    player.addListener {
-      if (it is TrackEndEvent) {
-        trackScheduler.onTrackEnd(player, it.track, it.endReason)
-      }
-    }
-
+  private fun playMusic(searchURL: String, channel: TextChannel) {
     // load up new track/playlist
-    playerManager.loadItem(searchURL, object : AudioLoadResultHandler {
-      override fun trackLoaded(track: AudioTrack?) {
-        if (track != null) {
-          trackScheduler.queue(track, channel)
-        }
-      }
-
-      override fun playlistLoaded(playlist: AudioPlaylist?) {
-        if (playlist != null) {
-          for (track in playlist.tracks) {
+    try {
+      playerManager.loadItem(searchURL, object : AudioLoadResultHandler {
+        override fun trackLoaded(track: AudioTrack?) {
+          if (track != null) {
             trackScheduler.queue(track, channel)
           }
         }
-      }
 
-      override fun noMatches() {
-        channel.sendMessage("No results found")
+        override fun playlistLoaded(playlist: AudioPlaylist?) {
+          if (playlist != null) {
+            for (track in playlist.tracks) {
+              trackScheduler.queue(track, channel)
+            }
+          }
+        }
 
-      }
+        override fun noMatches() {
+          channel.sendMessage("No results found")
+        }
 
-      override fun loadFailed(p0: FriendlyException?) {
-        channel.sendMessage("Failed to load, try again")
-      }
-    })
+        override fun loadFailed(p0: FriendlyException?) {
+          channel.sendMessage("Failed to load, try again")
+        }
+      })
+    } catch (e: Exception) {
+      channel.sendMessage("An error occurred, try again")
+    }
   }
 }
