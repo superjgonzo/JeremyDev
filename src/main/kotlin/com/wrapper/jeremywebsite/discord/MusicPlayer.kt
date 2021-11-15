@@ -63,6 +63,7 @@ class MusicPlayer {
         messageContent == "!skip" || messageContent == "!s" -> {
           if (trackScheduler.queue.isEmpty()) {
             channel.sendMessage("Queue is empty")
+            player.stopTrack()
           } else {
             trackScheduler.nextTrack()
           }
