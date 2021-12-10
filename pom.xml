@@ -11,7 +11,7 @@
 	<groupId>com.wrapper</groupId>
 	<artifactId>spotifyapi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>spotifyapi</name>
 	<description>Spotify Web App</description>
 
@@ -163,6 +163,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>SpotifyBackend</finalName>
 	</build>
 
 </project>

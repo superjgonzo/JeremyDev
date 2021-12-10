@@ -13,9 +13,8 @@ import java.io.IOException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletionException
 
-//private val redirectUri = SpotifyHttpManager.makeUri("http://localhost:8080/callback")
-private val redirectUri = SpotifyHttpManager.makeUri("http://superjgonzo.net/callback")
 private const val PLAYLIST_NAME = "PartyQueue"
+private const val WEB_URL = "website.url"
 
 @Service
 class SpotifyRepository @Autowired constructor(
@@ -23,6 +22,7 @@ class SpotifyRepository @Autowired constructor(
   environment: Environment
 ) {
 
+  private val redirectUri = SpotifyHttpManager.makeUri(environment.getProperty(WEB_URL) + "/callback")
   private val clientId = environment.getProperty("spotify.clientId") ?: ""
 
   private val spotifyApi = SpotifyApi.Builder()

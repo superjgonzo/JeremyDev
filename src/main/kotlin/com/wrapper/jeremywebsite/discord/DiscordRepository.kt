@@ -14,21 +14,23 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
   private val musicPlayer = MusicPlayer()
   private val discordToken = googleCloudRepository.accessDiscordToken()
 
-  @Bean
-  @ConfigurationProperties(value = "discord-api")
-  fun discordApi(): DiscordApi {
-    val api = DiscordApiBuilder()
-      .setToken(discordToken)
-      .setAllNonPrivilegedIntents()
-      .login()
-      .join()
 
-    api.addMessageCreateListener { event ->
-      if (!event.messageAuthor.isYourself) {
-        musicPlayer.handleMessage(event)
-      }
-    }
-
-    return api
-  }
+  // UNCOMMENT OUT IF YOU WANT THE DISCORD BOT TO RUN WHEN THE WEBSITE IS LAUNCHED
+//  @Bean
+//  @ConfigurationProperties(value = "discord-api")
+//  fun discordApi(): DiscordApi {
+//    val api = DiscordApiBuilder()
+//      .setToken(discordToken)
+//      .setAllNonPrivilegedIntents()
+//      .login()
+//      .join()
+//
+//    api.addMessageCreateListener { event ->
+//      if (!event.messageAuthor.isYourself) {
+//        musicPlayer.handleMessage(event)
+//      }
+//    }
+//
+//    return api
+//  }
 }

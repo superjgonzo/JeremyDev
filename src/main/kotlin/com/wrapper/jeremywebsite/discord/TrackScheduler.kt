@@ -15,8 +15,12 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
 
   fun nextTrack() {
     val nextTrack = queue.poll()
-    currentChannel.sendMessage("Now Playing: " + nextTrack.info.title)
-    audioPlayer.startTrack(nextTrack, false)
+    if (nextTrack == null) {
+      currentChannel.sendMessage("Queue is empty")
+    } else {
+      currentChannel.sendMessage("Now Playing: " + nextTrack.info.title)
+      audioPlayer.startTrack(nextTrack, false)
+    }
   }
 
   fun queue(track: AudioTrack, channel: TextChannel) {
@@ -33,7 +37,7 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
 
   override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
     if (endReason == AudioTrackEndReason.LOAD_FAILED) {
-     currentChannel.sendMessage("Error Loading song: " + track?.info?.title)
+     currentChannel.sendMessage("Error Loading song: " + track?.info?.title + "\n skipping to the next song")
     }
 
     if (endReason?.mayStartNext == true) {
