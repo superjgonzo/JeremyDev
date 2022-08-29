@@ -11,10 +11,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import org.javacord.api.DiscordApi
 import org.javacord.api.audio.AudioConnection
 import org.javacord.api.entity.channel.TextChannel
-import org.javacord.api.event.message.MessageCreateEvent
+import org.javacord.api.entity.message.MessageFlag
+import org.javacord.api.entity.user.User
+import org.javacord.api.event.interaction.SlashCommandCreateEvent
+import org.javacord.api.interaction.Interaction
 
-class MusicPlayer {
-
+class MusicPlayer(val api: DiscordApi) {
   private var currentAudioConnection: AudioConnection? = null
   private val playerManager = DefaultAudioPlayerManager().also {
     it.registerSourceManager(YoutubeAudioSourceManager())
@@ -32,87 +34,201 @@ class MusicPlayer {
   // Create an audio source and add it to the audio connection's queue
   private var source: LavaPlayerAudioSource? = null
 
-  fun handleMessage(event: MessageCreateEvent) {
-    if (source == null) {
-      source = LavaPlayerAudioSource(event.api, player)
-    }
-    with(event) {
-      when {
-        // queue up a new song
-        messageContent.split(" ").first() == "!play" || messageContent.split(" ").first() == "!p" -> {
-          // if not enough arguments are provided then display an error message
-          if (messageContent.split(" ").size < 2) {
-            channel.sendMessage("You need to include a youtube link")
-          } else {
-            // search for the message author's connected voice channel
-            messageAuthor.connectedVoiceChannel.map {
-              // if the bot is currently connected to the channel then play the song
-              if (it.isConnected(api.yourself) && currentAudioConnection != null) {
-                playMusic(messageContent.split(" ")[1], channel)
-              } else {
-                // if the bot is not connected to the channel then connect and then play the song
-                it.connect().thenAccept { audioConnection ->
-                  currentAudioConnection = audioConnection
-                  currentAudioConnection!!.setAudioSource(source)
-                  playMusic(messageContent.split(" ")[1], channel)
-                }
-              }
-            }
-          }
+  init {
+    source = LavaPlayerAudioSource(api, player)
+  }
+
+  fun handleSlashCommand(event: SlashCommandCreateEvent) {
+    when (event.slashCommandInteraction.commandName) {
+      CommandFactory.PLAY -> {
+        // ensure the bot is connected to a voice channel
+        if (checkIfConnected(event)) {
+          playMusic(
+            event.interaction,
+            event.slashCommandInteraction.arguments.first().stringValue.get(),
+            event.interaction.channel.get(),
+            event.interaction.user
+          )
         }
-        messageContent == "!skip" || messageContent == "!s" -> {
-          if (trackScheduler.queue.isEmpty()) {
-            player.stopTrack()
-          }
-          trackScheduler.nextTrack()
+      }
+      CommandFactory.PLAY_NEXT -> {
+        // ensure the bot is connected to a voice channel
+        if (checkIfConnected(event)) {
+          playMusic(
+            interaction = event.interaction,
+            searchURL = event.slashCommandInteraction.arguments.first().stringValue.get(),
+            channel = event.interaction.channel.get(),
+            user = event.interaction.user,
+            shouldPlayNext = true
+          )
         }
-        messageContent == "!currentSong" -> {
-          channel.sendMessage(
-            if (player.playingTrack != null) {
-              player.playingTrack.info.title
-            } else {
-              "No song playing"
+      }
+      CommandFactory.ASCEND -> {
+        // ensure the bot is connected to a voice channel
+        if (checkIfConnected(event)) {
+          playMusic(
+            interaction = event.interaction,
+            searchURL = "https://www.youtube.com/watch?v=t6isux5XWH0&t=80s",
+            channel = event.interaction.channel.get(),
+            user = event.interaction.user,
+            shouldPlayNext = true,
+            shouldPlayNow = true,
+            customInteractionResponse = {
+              event.interaction
+                .createImmediateResponder()
+                .setContent("AMENO!")
+                .setFlags(MessageFlag.EPHEMERAL)
+                .respond()
             }
           )
         }
-        messageContent == "!disconnect" -> {
-          player.destroy()
-          trackScheduler.queue.clear()
-          currentAudioConnection?.close()
-        }
-        else -> { /* do nothing */ }
       }
+      CommandFactory.BEDIGA -> {
+        // ensure the bot is connected to a voice channel
+        if (checkIfConnected(event)) {
+          playMusic(
+            event.interaction,
+            "https://www.youtube.com/playlist?list=PLG6VjfkF37Qx-SwOWKOTJ-7bBx7KZIObS",
+            event.interaction.channel.get(),
+            event.interaction.user
+          )
+        }
+      }
+      CommandFactory.CURRENT_SONG -> {
+        val content = if (player.playingTrack != null) {
+          player.playingTrack.info.title +
+            "\n${player.playingTrack.duration}" +
+            "\n${player.playingTrack.position}"
+        } else {
+          "No song playing"
+        }
+
+        event.interaction
+          .createImmediateResponder()
+          .setContent(content)
+          .setFlags(MessageFlag.EPHEMERAL)
+          .respond()
+      }
+      CommandFactory.SKIP -> {
+        if (trackScheduler.queue.isEmpty()) {
+          player.stopTrack()
+        }
+        trackScheduler.nextTrack()
+
+        event.interaction
+          .createImmediateResponder()
+          .setContent("Skipping track")
+          .respond()
+      }
+      CommandFactory.DISCONNECT -> {
+        event.interaction.createImmediateResponder().setContent("Goodbye My Sweet Child").respond()
+        player.destroy()
+        trackScheduler.queue.clear()
+        currentAudioConnection?.close()
+      }
+      else -> event.interaction
+        .createImmediateResponder()
+        .setContent("Who asked? \n- Dima")
+        .respond()
     }
   }
 
-  private fun playMusic(searchURL: String, channel: TextChannel) {
+  private fun playMusic(
+    interaction: Interaction,
+    searchURL: String,
+    channel: TextChannel,
+    user: User,
+    shouldPlayNext: Boolean = false,
+    shouldPlayNow: Boolean = false,
+    customInteractionResponse: (() -> Unit)? = null
+  ) {
     // load up new track/playlist
     try {
       playerManager.loadItem(searchURL, object : AudioLoadResultHandler {
         override fun trackLoaded(track: AudioTrack?) {
           if (track != null) {
-            trackScheduler.queue(track, channel)
+            if (shouldPlayNext && trackScheduler.queue.isNotEmpty()) {
+              trackScheduler.queueNext(track, user)
+            } else {
+              trackScheduler.queue(track, channel, user)
+            }
           }
+
+          if (shouldPlayNow) {
+            trackScheduler.nextTrack()
+          }
+
+          customInteractionResponse?.let {
+            it()
+          } ?: interaction
+            .createImmediateResponder()
+            .setContent("Song Added!")
+            .setFlags(MessageFlag.EPHEMERAL)
+            .respond()
         }
 
         override fun playlistLoaded(playlist: AudioPlaylist?) {
           if (playlist != null) {
-            for (track in playlist.tracks) {
-              trackScheduler.queue(track, channel)
+            val longInteractionWait = interaction.respondLater(true)
+
+            val listOfTracks = playlist.tracks.also { it.shuffle() }
+            for (track in listOfTracks) {
+              trackScheduler.queue(track, channel, user)
             }
+
+            longInteractionWait
+              .thenAccept {
+                it.setContent("All tracks added!")
+                  .setFlags(MessageFlag.EPHEMERAL)
+                  .update()
+              }
           }
         }
 
         override fun noMatches() {
-          channel.sendMessage("No results found")
+          interaction
+            .createImmediateResponder()
+            .setContent("No Matches Found :(")
+            .setFlags(MessageFlag.EPHEMERAL)
+            .respond()
         }
 
         override fun loadFailed(p0: FriendlyException?) {
-          channel.sendMessage("Failed to load, try again")
+          interaction
+            .createImmediateResponder()
+            .setContent("Failed to load, try again!")
+            .setFlags(MessageFlag.EPHEMERAL)
+            .respond()
         }
       })
     } catch (e: Exception) {
-      channel.sendMessage("An error occurred, try again")
+      interaction
+        .createImmediateResponder()
+        .setContent("An error occurred, try again")
+        .setFlags(MessageFlag.EPHEMERAL)
+        .respond()
     }
+  }
+
+  private fun checkIfConnected(event: SlashCommandCreateEvent): Boolean {
+    val connectedVoiceCHannels = event.interaction.user.connectedVoiceChannels
+
+    if (connectedVoiceCHannels.map {
+      if (!it.isConnected(api.yourself) && currentAudioConnection == null) {
+        // if the bot is not connected to the channel then connect and then play the song
+        it.connect().thenAccept { audioConnection ->
+          currentAudioConnection = audioConnection
+          currentAudioConnection!!.setAudioSource(source)
+        }
+      }
+    }.isEmpty()) {
+      event.interaction
+        .createImmediateResponder()
+        .setContent("Not connected to a voice channel")
+        .setFlags(MessageFlag.EPHEMERAL)
+        .respond()
+    }
+
+    return connectedVoiceCHannels.isNotEmpty()
   }
 }

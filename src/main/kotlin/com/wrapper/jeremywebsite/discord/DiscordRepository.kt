@@ -11,26 +11,26 @@ import org.springframework.stereotype.Service
 @Service
 class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleCloudRepository) {
 
-  private val musicPlayer = MusicPlayer()
   private val discordToken = googleCloudRepository.accessDiscordToken()
 
-
   // UNCOMMENT OUT IF YOU WANT THE DISCORD BOT TO RUN WHEN THE WEBSITE IS LAUNCHED
-//  @Bean
-//  @ConfigurationProperties(value = "discord-api")
-//  fun discordApi(): DiscordApi {
-//    val api = DiscordApiBuilder()
-//      .setToken(discordToken)
-//      .setAllNonPrivilegedIntents()
-//      .login()
-//      .join()
-//
-//    api.addMessageCreateListener { event ->
-//      if (!event.messageAuthor.isYourself) {
-//        musicPlayer.handleMessage(event)
-//      }
-//    }
-//
-//    return api
-//  }
+  @Bean
+  @ConfigurationProperties(value = "discord-api")
+  fun discordApi(): DiscordApi {
+    val api = DiscordApiBuilder()
+      .setToken(discordToken)
+      .setAllNonPrivilegedIntents()
+      .login()
+      .join()
+
+    CommandFactory(api).createCommands()
+
+    val musicPlayer = MusicPlayer(api)
+
+    api.addSlashCommandCreateListener { event ->
+      musicPlayer.handleSlashCommand(event)
+    }
+
+    return api
+  }
 }
