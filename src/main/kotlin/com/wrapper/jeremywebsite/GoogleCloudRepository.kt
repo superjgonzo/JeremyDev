@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 import java.io.IOException
 
 private const val DISCORD_TOKEN = "discord-token"
-private const val DISCORD_VERSION = "1"
+private const val DISCORD_VERSION = "3"
 
 @Service
 class GoogleCloudRepository @Autowired constructor(val environment: Environment) {

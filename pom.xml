@@ -11,9 +11,9 @@
 	<groupId>com.wrapper</groupId>
 	<artifactId>spotifyapi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+<!--	<packaging>jar</packaging>-->
 	<packaging>war</packaging>
-<!--	<name>spotifyapi</name>-->
+	<name>spotifyapi</name>
 	<description>Spotify Web App</description>
 
 	<properties>

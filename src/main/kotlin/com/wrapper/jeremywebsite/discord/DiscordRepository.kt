@@ -14,7 +14,7 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
   private val discordToken = googleCloudRepository.accessDiscordToken()
 
   // UNCOMMENT OUT IF YOU WANT THE DISCORD BOT TO RUN WHEN THE WEBSITE IS LAUNCHED
-  @Bean
+  /*@Bean
   @ConfigurationProperties(value = "discord-api")
   fun discordApi(): DiscordApi {
     val api = DiscordApiBuilder()
@@ -32,5 +32,5 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
     }
 
     return api
-  }
+  }*/
 }

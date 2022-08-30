@@ -39,17 +39,19 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
     }
   }
 
-  fun queueNext(track: AudioTrack, user: User) {
+  fun queueNext(track: AudioTrack, user: User, showQueueMessage: Boolean) {
     // if a song is not already playing
     if (!audioPlayer.startTrack(track, true)) {
       if (queue.offerFirst(QueueItem(track, user))) {
-        currentChannel.sendMessage(
-          EmbedBuilder()
-            .setTitle("Queueing Up Next: ")
-            .setTitle(track.info.title)
-            .setDescription( "Songs in queue: " + queue.size)
-            .setColor(Color.LIGHT_GRAY)
-        )
+        if (showQueueMessage) {
+          currentChannel.sendMessage(
+            EmbedBuilder()
+              .setTitle("Queueing Up Next: ")
+              .setTitle(track.info.title)
+              .setDescription( "Songs in queue: " + queue.size)
+              .setColor(Color.LIGHT_GRAY)
+          )
+        }
       }
     } else {
       currentChannel.sendMessage(
@@ -66,18 +68,19 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
     }
   }
 
-  fun queue(track: AudioTrack, channel: TextChannel, user: User) {
+  fun queue(track: AudioTrack, channel: TextChannel, user: User, fromPlaylist: Boolean = false) {
     currentChannel = channel
     // if a song is not already playing
     if (!audioPlayer.startTrack(track, true)) {
       if (queue.add(QueueItem(track, user))) {
-        currentChannel.sendMessage(
-          EmbedBuilder()
-            .setTitle("Queueing Up: " + track.info.title)
-            .setDescription( "Songs in queue: " + queue.size)
-            .setColor(Color.LIGHT_GRAY)
-        )
-//        channel.sendMessage("Queueing Up: " + track.info.title + "\nsongs in queue: " + queue.size)
+        if (!fromPlaylist) {
+          currentChannel.sendMessage(
+            EmbedBuilder()
+              .setTitle("Queueing Up: " + track.info.title)
+              .setDescription( "Songs in queue: " + queue.size)
+              .setColor(Color.LIGHT_GRAY)
+          )
+        }
       }
     } else {
       currentChannel.sendMessage(

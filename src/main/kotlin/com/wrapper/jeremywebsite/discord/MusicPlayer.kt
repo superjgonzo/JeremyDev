@@ -32,11 +32,7 @@ class MusicPlayer(val api: DiscordApi) {
   }
   private val trackScheduler: TrackScheduler = TrackScheduler(player)
   // Create an audio source and add it to the audio connection's queue
-  private var source: LavaPlayerAudioSource? = null
-
-  init {
-    source = LavaPlayerAudioSource(api, player)
-  }
+  private var source = LavaPlayerAudioSource(api, player)
 
   fun handleSlashCommand(event: SlashCommandCreateEvent) {
     when (event.slashCommandInteraction.commandName) {
@@ -73,6 +69,7 @@ class MusicPlayer(val api: DiscordApi) {
             user = event.interaction.user,
             shouldPlayNext = true,
             shouldPlayNow = true,
+            showQueueMessage = false,
             customInteractionResponse = {
               event.interaction
                 .createImmediateResponder()
@@ -125,6 +122,7 @@ class MusicPlayer(val api: DiscordApi) {
         player.destroy()
         trackScheduler.queue.clear()
         currentAudioConnection?.close()
+        currentAudioConnection = null
       }
       else -> event.interaction
         .createImmediateResponder()
@@ -140,6 +138,7 @@ class MusicPlayer(val api: DiscordApi) {
     user: User,
     shouldPlayNext: Boolean = false,
     shouldPlayNow: Boolean = false,
+    showQueueMessage: Boolean = true,
     customInteractionResponse: (() -> Unit)? = null
   ) {
     // load up new track/playlist
@@ -148,7 +147,7 @@ class MusicPlayer(val api: DiscordApi) {
         override fun trackLoaded(track: AudioTrack?) {
           if (track != null) {
             if (shouldPlayNext && trackScheduler.queue.isNotEmpty()) {
-              trackScheduler.queueNext(track, user)
+              trackScheduler.queueNext(track, user, showQueueMessage)
             } else {
               trackScheduler.queue(track, channel, user)
             }
@@ -173,7 +172,7 @@ class MusicPlayer(val api: DiscordApi) {
 
             val listOfTracks = playlist.tracks.also { it.shuffle() }
             for (track in listOfTracks) {
-              trackScheduler.queue(track, channel, user)
+              trackScheduler.queue(track, channel, user, true)
             }
 
             longInteractionWait
