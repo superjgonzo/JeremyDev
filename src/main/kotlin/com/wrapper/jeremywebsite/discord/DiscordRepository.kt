@@ -25,10 +25,11 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
 
     CommandFactory(api).createCommands()
 
-    val musicPlayer = MusicPlayer(api)
+    val mapOfMusicPlayers = hashMapOf<Long, MusicPlayer>()
 
     api.addSlashCommandCreateListener { event ->
-      musicPlayer.handleSlashCommand(event)
+      val serverId = event.interaction.server.get().id
+      mapOfMusicPlayers.getOrPut(serverId) { MusicPlayer(api) }.handleSlashCommand(event)
     }
 
     return api
