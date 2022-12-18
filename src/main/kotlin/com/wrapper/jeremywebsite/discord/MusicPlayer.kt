@@ -15,6 +15,9 @@ import org.javacord.api.entity.message.MessageFlag
 import org.javacord.api.entity.user.User
 import org.javacord.api.event.interaction.SlashCommandCreateEvent
 import org.javacord.api.interaction.Interaction
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 
 class MusicPlayer(val api: DiscordApi) {
   private var currentAudioConnection: AudioConnection? = null
@@ -34,6 +37,7 @@ class MusicPlayer(val api: DiscordApi) {
   // Create an audio source and add it to the audio connection's queue
   private var source = LavaPlayerAudioSource(api, player)
 
+  @OptIn(ExperimentalTime::class)
   fun handleSlashCommand(event: SlashCommandCreateEvent) {
     when (event.slashCommandInteraction.commandName) {
       CommandFactory.PLAY -> {
@@ -94,8 +98,8 @@ class MusicPlayer(val api: DiscordApi) {
       CommandFactory.CURRENT_SONG -> {
         val content = if (player.playingTrack != null) {
           player.playingTrack.info.title +
-            "\n${player.playingTrack.duration}" +
-            "\n${player.playingTrack.position}"
+            "\n${player.playingTrack.duration.toDuration(DurationUnit.MINUTES)}" +
+            "\n${player.playingTrack.position.toDuration(DurationUnit.MINUTES)}"
         } else {
           "No song playing"
         }
@@ -123,6 +127,14 @@ class MusicPlayer(val api: DiscordApi) {
         trackScheduler.queue.clear()
         currentAudioConnection?.close()
         currentAudioConnection = null
+      }
+      CommandFactory.CLEAR -> {
+        trackScheduler.queue.clear()
+
+        event.interaction
+          .createImmediateResponder()
+          .setContent("Clearing the queue")
+          .respond()
       }
       else -> event.interaction
         .createImmediateResponder()

@@ -15,6 +15,7 @@ class CommandFactory(private val api: DiscordApi) {
     const val BEDIGA = "bediga"
     const val CURRENT_SONG = "currentsong"
     const val DISCONNECT = "disconnect"
+    const val CLEAR = "clear"
   }
 
   fun createCommands() {
@@ -55,6 +56,10 @@ class CommandFactory(private val api: DiscordApi) {
       .join()
 
     SlashCommand.with(DISCONNECT, "Disconnect Bediga Bot from the Channel")
+      .createGlobal(api)
+      .join()
+
+    SlashCommand.with(CLEAR, "Clear the playlist")
       .createGlobal(api)
       .join()
   }
