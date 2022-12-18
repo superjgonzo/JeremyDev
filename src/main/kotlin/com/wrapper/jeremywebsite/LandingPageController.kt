@@ -20,7 +20,7 @@ class LandingPageController @Autowired constructor(
 ) {
 
   @RequestMapping("/")
-  fun home(): String = "Testing Google Cloud Scaling..."
+  fun home(): String = "Hello World this is Jeremy!!"
 
   @RequestMapping("/welcome")
   fun loggedIn(): String = "WELCOME!"
