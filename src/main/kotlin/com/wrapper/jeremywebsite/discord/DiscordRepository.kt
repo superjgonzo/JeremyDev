@@ -19,6 +19,7 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
   fun discordApi(): DiscordApi {
     val api = DiscordApiBuilder()
       .setToken(discordToken)
+      .setWaitForServersOnStartup(false)
       .setAllNonPrivilegedIntents()
       .login()
       .join()
@@ -30,9 +31,15 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
     api.addSlashCommandCreateListener { event ->
       val serverId = event.interaction.server.get().id
       mapOfMusicPlayers.getOrPut(serverId) { MusicPlayer(api) }.handleSlashCommand(event)
+
       if (event.slashCommandInteraction.commandName == CommandFactory.DISCONNECT) {
         mapOfMusicPlayers.remove(serverId)
       }
+    }
+
+    api.addMessageComponentCreateListener { event ->
+      val serverId = event.interaction.server.get().id
+      mapOfMusicPlayers.getOrPut(serverId) { MusicPlayer(api) }.handleMessageInteraction(event)
     }
 
     return api

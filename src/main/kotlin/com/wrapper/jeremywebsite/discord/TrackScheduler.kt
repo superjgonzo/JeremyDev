@@ -5,6 +5,9 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import org.javacord.api.entity.channel.TextChannel
+import org.javacord.api.entity.message.MessageBuilder
+import org.javacord.api.entity.message.component.ActionRow
+import org.javacord.api.entity.message.component.Button
 import org.javacord.api.entity.message.embed.EmbedBuilder
 import org.javacord.api.entity.user.User
 import java.awt.Color
@@ -24,7 +27,7 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
           .setColor(Color.RED)
       )
     } else {
-      currentChannel.sendMessage(
+      MessageBuilder().setEmbed(
         EmbedBuilder()
           .setAuthor(nextItem.queuedBy.nicknameMentionTag, null, nextItem.queuedBy.avatar)
           .setTitle(nextItem.track.info.title)
@@ -34,7 +37,13 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
           .addField("URL", nextItem.track.info.uri)
           .setAuthor(nextItem.queuedBy)
           .setColor(Color.GREEN)
-      )
+      ).addComponents(
+        ActionRow.of(
+          Button.primary("requeue ${nextItem.track.info.uri}", "re-add song to queue"),
+          Button.danger("skip ${nextItem.track.info.uri}", "skip song")
+        )
+      ).send(currentChannel)
+
       audioPlayer.startTrack(nextItem.track, false)
     }
   }
@@ -83,7 +92,7 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
         }
       }
     } else {
-      currentChannel.sendMessage(
+      MessageBuilder().setEmbed(
         EmbedBuilder()
           .setAuthor(user.nicknameMentionTag, null, user.avatar)
           .setTitle(track.info.title)
@@ -92,7 +101,12 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
           .addField("URL", track.info.uri)
           .setAuthor(user)
           .setColor(Color.BLUE)
-      )
+      ).addComponents(
+        ActionRow.of(
+          Button.primary("requeue ${track.info.uri}", "re-add song to queue"),
+          Button.danger("skip ${track.info.uri}", "skip song")
+        )
+      ).send(currentChannel)
     }
   }
 

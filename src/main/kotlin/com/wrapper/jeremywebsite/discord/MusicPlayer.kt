@@ -13,6 +13,7 @@ import org.javacord.api.audio.AudioConnection
 import org.javacord.api.entity.channel.TextChannel
 import org.javacord.api.entity.message.MessageFlag
 import org.javacord.api.entity.user.User
+import org.javacord.api.event.interaction.MessageComponentCreateEvent
 import org.javacord.api.event.interaction.SlashCommandCreateEvent
 import org.javacord.api.interaction.Interaction
 import kotlin.time.DurationUnit
@@ -42,7 +43,7 @@ class MusicPlayer(val api: DiscordApi) {
     when (event.slashCommandInteraction.commandName) {
       CommandFactory.PLAY -> {
         // ensure the bot is connected to a voice channel
-        if (checkIfConnected(event)) {
+        if (checkIfConnected(event.interaction)) {
           playMusic(
             event.interaction,
             event.slashCommandInteraction.arguments.first().stringValue.get(),
@@ -53,7 +54,7 @@ class MusicPlayer(val api: DiscordApi) {
       }
       CommandFactory.PLAY_NEXT -> {
         // ensure the bot is connected to a voice channel
-        if (checkIfConnected(event)) {
+        if (checkIfConnected(event.interaction)) {
           playMusic(
             interaction = event.interaction,
             searchURL = event.slashCommandInteraction.arguments.first().stringValue.get(),
@@ -65,7 +66,7 @@ class MusicPlayer(val api: DiscordApi) {
       }
       CommandFactory.ASCEND -> {
         // ensure the bot is connected to a voice channel
-        if (checkIfConnected(event)) {
+        if (checkIfConnected(event.interaction)) {
           playMusic(
             interaction = event.interaction,
             searchURL = "https://www.youtube.com/watch?v=t6isux5XWH0&t=80s",
@@ -86,7 +87,7 @@ class MusicPlayer(val api: DiscordApi) {
       }
       CommandFactory.BEDIGA -> {
         // ensure the bot is connected to a voice channel
-        if (checkIfConnected(event)) {
+        if (checkIfConnected(event.interaction)) {
           playMusic(
             event.interaction,
             "https://www.youtube.com/playlist?list=PLG6VjfkF37Qx-SwOWKOTJ-7bBx7KZIObS",
@@ -141,6 +142,60 @@ class MusicPlayer(val api: DiscordApi) {
         .setContent("Who asked? \n- Dima")
         .respond()
     }
+  }
+
+  fun handleMessageInteraction(event: MessageComponentCreateEvent) {
+    val command = event.messageComponentInteraction.customId.split(' ')
+    when (command.first()){
+      // hacky way to retry a song as there is no way to send arguments through messageComponent
+      "requeue" -> {
+        // ensure the bot is connected to a voice channel
+        if (checkIfConnected(event.interaction)) {
+          event.interaction.createImmediateResponder()
+            .setContent("Song added to queue!")
+            .setFlags(MessageFlag.EPHEMERAL)
+            .respond()
+          playMusic(
+            event.interaction,
+            command[1],
+            event.interaction.channel.get(),
+            event.interaction.user
+          )
+        }
+      }
+      "skip" -> {
+        when {
+          trackScheduler.queue.isEmpty() -> {
+            player.stopTrack()
+            event.interaction
+              .createImmediateResponder()
+              .setContent("Skipping track")
+              .setFlags(MessageFlag.EPHEMERAL)
+              .respond()
+          }
+          command[1] == player.playingTrack.info.uri -> {
+            trackScheduler.nextTrack()
+            event.interaction
+              .createImmediateResponder()
+              .setContent("Skipping track")
+              .setFlags(MessageFlag.EPHEMERAL)
+              .respond()
+          }
+          else -> event.interaction
+            .createImmediateResponder()
+            .setContent("That track is not currently playing...")
+            .setFlags(MessageFlag.EPHEMERAL)
+            .respond()
+        }
+      }
+      else -> {
+        event.interaction
+          .createImmediateResponder()
+          .setContent(event.messageComponentInteraction.message.content)
+          .respond()
+      }
+    }
+
   }
 
   private fun playMusic(
@@ -234,6 +289,28 @@ class MusicPlayer(val api: DiscordApi) {
       }
     }.isEmpty()) {
       event.interaction
+        .createImmediateResponder()
+        .setContent("Not connected to a voice channel")
+        .setFlags(MessageFlag.EPHEMERAL)
+        .respond()
+    }
+
+    return connectedVoiceCHannels.isNotEmpty()
+  }
+
+  private fun checkIfConnected(interaction: Interaction): Boolean {
+    val connectedVoiceCHannels = interaction.user.connectedVoiceChannels
+
+    if (connectedVoiceCHannels.map {
+        if (!it.isConnected(api.yourself) && currentAudioConnection == null) {
+          // if the bot is not connected to the channel then connect and then play the song
+          it.connect().thenAccept { audioConnection ->
+            currentAudioConnection = audioConnection
+            currentAudioConnection!!.setAudioSource(source)
+          }
+        }
+      }.isEmpty()) {
+      interaction
         .createImmediateResponder()
         .setContent("Not connected to a voice channel")
         .setFlags(MessageFlag.EPHEMERAL)
