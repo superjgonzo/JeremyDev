@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service
 class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleCloudRepository) {
 
   private val discordToken = googleCloudRepository.accessDiscordToken()
+// uncomment an put discord token
+//  private val discordToken = ""
 
   // UNCOMMENT OUT IF YOU WANT THE DISCORD BOT TO RUN WHEN THE WEBSITE IS LAUNCHED
   /*@Bean

@@ -276,28 +276,6 @@ class MusicPlayer(val api: DiscordApi) {
     }
   }
 
-  private fun checkIfConnected(event: SlashCommandCreateEvent): Boolean {
-    val connectedVoiceCHannels = event.interaction.user.connectedVoiceChannels
-
-    if (connectedVoiceCHannels.map {
-      if (!it.isConnected(api.yourself) && currentAudioConnection == null) {
-        // if the bot is not connected to the channel then connect and then play the song
-        it.connect().thenAccept { audioConnection ->
-          currentAudioConnection = audioConnection
-          currentAudioConnection!!.setAudioSource(source)
-        }
-      }
-    }.isEmpty()) {
-      event.interaction
-        .createImmediateResponder()
-        .setContent("Not connected to a voice channel")
-        .setFlags(MessageFlag.EPHEMERAL)
-        .respond()
-    }
-
-    return connectedVoiceCHannels.isNotEmpty()
-  }
-
   private fun checkIfConnected(interaction: Interaction): Boolean {
     val connectedVoiceCHannels = interaction.user.connectedVoiceChannels
 
@@ -307,6 +285,9 @@ class MusicPlayer(val api: DiscordApi) {
           it.connect().thenAccept { audioConnection ->
             currentAudioConnection = audioConnection
             currentAudioConnection!!.setAudioSource(source)
+          }.exceptionally { throwable ->
+            println(throwable.message)
+            null
           }
         }
       }.isEmpty()) {
