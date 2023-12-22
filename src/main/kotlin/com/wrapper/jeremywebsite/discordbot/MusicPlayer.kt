@@ -280,9 +280,9 @@ class MusicPlayer(val api: DiscordApi) {
   }
 
   private fun checkIfConnected(interaction: Interaction): Boolean {
-    val connectedVoiceCHannels = interaction.user.connectedVoiceChannels
+    val connectedVoiceChannels = interaction.user.connectedVoiceChannels
 
-    if (connectedVoiceCHannels.map {
+    if (connectedVoiceChannels.map {
         if (!it.isConnected(api.yourself) && currentAudioConnection == null) {
           // if the bot is not connected to the channel then connect and then play the song
           it.connect().thenAccept { audioConnection ->
@@ -301,6 +301,6 @@ class MusicPlayer(val api: DiscordApi) {
         .respond()
     }
 
-    return connectedVoiceCHannels.isNotEmpty()
+    return connectedVoiceChannels.isNotEmpty()
   }
 }
