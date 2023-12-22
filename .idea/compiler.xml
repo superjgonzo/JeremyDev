@@ -6,15 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="api" />
         <module name="demo" />
         <module name="spotifyapi" />
+        <module name="api" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="api" target="1.8" />
       <module name="demo" target="1.8" />
-      <module name="spotifyapi" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
