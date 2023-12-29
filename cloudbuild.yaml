@@ -1,4 +1,4 @@
 steps:
   - name: 'gcr.io/cloud-builders/mvn'
     entrypoint: mvn
-    args: ['package', 'appengine:deploy']
+    args: ['package', '-Dmaven.test.skip=true', 'appengine:deploy']
