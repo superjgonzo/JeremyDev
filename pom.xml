@@ -1,28 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.6.RELEASE</version>
+		<version>3.2.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.wrapper</groupId>
-	<artifactId>spotifyapi</artifactId>
+	<groupId>com.jeremy</groupId>
+	<artifactId>dev</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 <!--	<packaging>jar</packaging>-->
 	<packaging>war</packaging>
-	<name>spotifyapi</name>
-	<description>Spotify Web App</description>
+	<name>dev</name>
+	<description>Jeremy Dev</description>
 
 	<properties>
-		<java.version>1.8</java.version>
-		<kotlin.version>1.3.71</kotlin.version>
-		<spring-cloud.version>Hoxton.SR4</spring-cloud.version>
+		<java.version>21</java.version>
+		<kotlin.version>1.9.22</kotlin.version>
+		<spring-cloud-gcp.version>5.0.0</spring-cloud-gcp.version>
+		<spring-cloud.version>2023.0.0</spring-cloud.version>
 	</properties>
 
 	<repositories>
+		<repository>
+			<id>spring-repo</id>
+			<url>https://repo.spring.io/release</url>
+		</repository>
 		<repository>
 			<id>dv8tion</id>
 			<name>m2-dv8tion</name>
@@ -36,22 +41,19 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-kotlin</artifactId>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-stdlib</artifactId>
+			<version>${kotlin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.jetbrains.kotlin</groupId>
-			<artifactId>kotlin-stdlib-jdk8</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-gcp-starter</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
@@ -61,12 +63,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.junit.vintage</groupId>
-					<artifactId>junit-vintage-engine</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>se.michaelthelin.spotify</groupId>
@@ -74,16 +70,11 @@
 			<version>6.0.0-RC1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>5.2.6.RELEASE</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
+			<groupId>com.google.cloud</groupId>
 			<artifactId>spring-cloud-gcp-starter-sql-mysql</artifactId>
 		</dependency>
 		<dependency>
@@ -98,12 +89,20 @@
 			<version>1.3.77</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
+			<groupId>com.google.cloud</groupId>
 			<artifactId>spring-cloud-gcp-starter-secretmanager</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.cloud</groupId>
 			<artifactId>google-cloud-secretmanager</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -113,6 +112,13 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
 				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>${spring-cloud-gcp.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -137,27 +143,14 @@
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
-				<configuration>
-					<args>
-						<arg>-Xjsr305=strict</arg>
-					</args>
-					<compilerPlugins>
-						<plugin>spring</plugin>
-					</compilerPlugins>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.jetbrains.kotlin</groupId>
-						<artifactId>kotlin-maven-allopen</artifactId>
-						<version>${kotlin.version}</version>
-					</dependency>
-				</dependencies>
+				<version>${kotlin.version}</version>
+				<extensions>true</extensions>
 			</plugin>
 
 			<plugin>
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>appengine-maven-plugin</artifactId>
-				<version>2.4.0</version>
+				<version>2.4.4</version>
 				<configuration>
 					<deploy.projectId>mystic-column-275402</deploy.projectId>
 					<deploy.version>GCLOUD_CONFIG</deploy.version>

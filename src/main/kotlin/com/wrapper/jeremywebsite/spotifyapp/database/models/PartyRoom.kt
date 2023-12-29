@@ -1,7 +1,9 @@
 package com.wrapper.jeremywebsite.spotifyapp.database.models
 
-import javax.persistence.*
-import javax.validation.constraints.NotBlank
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.validation.constraints.NotBlank
 
 @Entity
 data class PartyRoom(
