@@ -6,13 +6,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.1</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.jeremy</groupId>
 	<artifactId>dev</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-<!--	<packaging>jar</packaging>-->
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
+<!--	<packaging>war</packaging>-->
 	<name>dev</name>
 	<description>Jeremy Dev</description>
 
