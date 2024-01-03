@@ -23,7 +23,7 @@ class LandingPageController @Autowired constructor(
   fun home(): String = "Hello World this is Jeremy!!\n Testing some stuff"
 
   @RequestMapping("/welcome")
-  fun loggedIn(): String = "WELCOME!"
+  fun loggedIn(): String = "Testing some memes"
 
   @RequestMapping("/roomClosed")
   fun roomClosed(): String = "Room Closed!"
