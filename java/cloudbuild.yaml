@@ -1,0 +1,4 @@
+steps:
+  - name: maven:3.9.6-amazoncorretto-21-al2023
+    entrypoint: mvn
+    args: ['package', 'appengine:deploy']
