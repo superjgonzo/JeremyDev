@@ -2,6 +2,7 @@ package com.wrapper.jeremywebsite.discordbot
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import org.javacord.api.entity.channel.TextChannel
@@ -112,7 +113,7 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
 
   override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
     if (endReason == AudioTrackEndReason.LOAD_FAILED) {
-     currentChannel.sendMessage("Error Loading song: " + track?.info?.title + "\n skipping to the next song")
+     currentChannel.sendMessage("Error Loading song: " + track?.info?.title + "\nskipping to the next song")
     }
 
     if (endReason?.mayStartNext == true) {
@@ -120,5 +121,11 @@ class TrackScheduler(private val audioPlayer: AudioPlayer) : AudioEventAdapter()
         nextTrack()
       }
     }
+  }
+
+  override fun onTrackException(player: AudioPlayer?, track: AudioTrack?, exception: FriendlyException?) {
+    currentChannel.sendMessage(
+      "track exception: " + exception?.message + "\ntrack: ${track?.info?.uri}"
+    )
   }
 }
