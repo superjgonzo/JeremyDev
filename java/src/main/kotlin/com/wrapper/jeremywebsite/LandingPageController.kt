@@ -1,7 +1,6 @@
 package com.wrapper.jeremywebsite
 
 import com.wrapper.jeremywebsite.spotifyapp.database.repository.SpotifyRepository
-import com.wrapper.jeremywebsite.spotifyapp.endpoints.DatabaseController
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,7 +14,6 @@ private const val WEB_URL = "website.url"
 @RestController
 class LandingPageController @Autowired constructor(
   private val spotifyRepository: SpotifyRepository,
-  private val databaseController: DatabaseController,
   val environment: Environment
 ) {
 
@@ -43,14 +41,12 @@ class LandingPageController @Autowired constructor(
 
   @RequestMapping("/joinRoom")
   fun joinRoom(@RequestParam roomNumber: String) : ModelAndView? {
-    spotifyRepository.guestAccessCode(roomNumber)
     val homePage = environment.getProperty(WEB_URL)
     return ModelAndView("redirect:$homePage/welcome")
   }
 
   @RequestMapping("/closeRoom")
   fun closeRoom(@RequestParam roomNumber: String) : ModelAndView? {
-    databaseController.deleteRoomByRoomNumber(roomNumber)
     val homePage = environment.getProperty(WEB_URL)
     return ModelAndView("redirect:$homePage/roomClosed")
   }

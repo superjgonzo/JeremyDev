@@ -1,8 +1,6 @@
 package com.wrapper.jeremywebsite.spotifyapp.database.repository
 
 import com.wrapper.jeremywebsite.GoogleCloudRepository
-import com.wrapper.jeremywebsite.spotifyapp.database.models.PartyRoom
-import com.wrapper.jeremywebsite.spotifyapp.endpoints.DatabaseController
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.SpotifyHttpManager
 import com.wrapper.spotify.exceptions.SpotifyWebApiException
@@ -19,7 +17,6 @@ private const val WEB_URL = "website.url"
 
 @Service
 class SpotifyRepository @Autowired constructor(
-  private val databaseController: DatabaseController,
   environment: Environment,
   googleCloudRepository: GoogleCloudRepository,
 ) {
@@ -112,17 +109,6 @@ class SpotifyRepository @Autowired constructor(
       println("\nAfter Access Token: ${spotifyApi.accessToken}")
       println("After Refresh Token: ${spotifyApi.refreshToken}")
 
-      databaseController.updateRoomByRoomNumber(
-        roomNumber = roomNumber,
-        newRoom = PartyRoom(
-          roomNumber = roomNumber,
-          clientId = clientId,
-          playlistId = playlistId,
-          accessToken = authorizationCodeCredentials.accessToken,
-          refreshToken = authorizationCodeCredentials.refreshToken
-        )
-      )
-
       true
     } catch (e: IOException) {
       println("Error 1: " + e.message)
@@ -134,13 +120,6 @@ class SpotifyRepository @Autowired constructor(
       println("Error UH OH: " + e.message)
       false
     }
-  }
-
-  fun guestAccessCode(roomNumber: String) {
-    val partyRoom = databaseController.getRoomsByRoomNumber(roomNumber)
-
-    spotifyApi.accessToken = partyRoom.body?.accessToken
-    playlistId = partyRoom.body?.playlistId ?: ""
   }
 
   private fun getPartyQueuePlaylist(): String {
