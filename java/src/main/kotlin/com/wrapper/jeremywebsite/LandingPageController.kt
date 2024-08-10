@@ -33,21 +33,9 @@ class LandingPageController @Autowired constructor(
   }
 
   @RequestMapping("/callback")
-  fun callback(@RequestParam code: String): ModelAndView? {
+  fun callback(@RequestParam code: String): ModelAndView {
     spotifyRepository.authorizationCode(code)
     val homePage = environment.getProperty(WEB_URL)
     return ModelAndView("redirect:$homePage")
-  }
-
-  @RequestMapping("/joinRoom")
-  fun joinRoom(@RequestParam roomNumber: String) : ModelAndView? {
-    val homePage = environment.getProperty(WEB_URL)
-    return ModelAndView("redirect:$homePage/welcome")
-  }
-
-  @RequestMapping("/closeRoom")
-  fun closeRoom(@RequestParam roomNumber: String) : ModelAndView? {
-    val homePage = environment.getProperty(WEB_URL)
-    return ModelAndView("redirect:$homePage/roomClosed")
   }
 }

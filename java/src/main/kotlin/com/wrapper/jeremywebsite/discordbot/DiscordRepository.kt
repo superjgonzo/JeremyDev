@@ -16,7 +16,7 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
 // uncomment an put discord token
 //  private val discordToken = ""
 
-  @Bean
+ /* @Bean
   @ConfigurationProperties(value = "discord-api")
   fun discordApi(): DiscordApi {
     return DiscordApiBuilder()
@@ -25,5 +25,5 @@ class DiscordRepository @Autowired constructor(googleCloudRepository: GoogleClou
       .setAllNonPrivilegedIntents()
       .login()
       .join()
-  }
+  }*/
 }
